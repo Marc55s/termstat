@@ -1,9 +1,10 @@
-mod sqlite;
+pub mod sqlite;
 
+use uuid::Uuid;
+use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
-use core::time;
-use std::fs::{create_dir_all, read_to_string, rename, File};
+use std::fs::{create_dir_all, read_to_string, rename};
 use std::io::Error;
 use std::path::PathBuf;
 use std::process::exit;
@@ -17,6 +18,7 @@ struct Args {
     init: bool,
 
     /// Sync Log file with database
+    #[arg(short, long)]
     sync: bool,
 }
 
@@ -38,10 +40,10 @@ fn main() {
     let args = Args::parse();
     let _ = create_term_dir();
 
-    // init bashrc
+    // init zshrc
     if args.init {
         let _ = create_term_dir();
-        let bash_config_path = PathBuf::from("init").join("termstat.bash");
+        let bash_config_path = PathBuf::from("init").join("termstat.zsh");
         if let Ok(bash_config) = read_to_string(bash_config_path) {
             println!("{}", bash_config);
         }
@@ -53,10 +55,39 @@ fn main() {
             let term_file: PathBuf = state_directory.join(LOG_DIR).join(LOG_FILE_NAME);
             let time_now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
             let time_as_str = time_now.as_secs().to_string();
-            let _ = rename(&term_file, term_file.join(time_as_str));
-            let _ = File::create(term_file).expect("Log file move over failed");
+
+            let moved_file = format!("{}{}",term_file.to_str().unwrap(), time_as_str);
+            println!("{} {}", term_file.to_str().unwrap(), moved_file);
+            rename(&term_file, &moved_file).unwrap();
+
+            let example_entry = CommandEntry {
+               timestamp: 0,
+               user: "test".to_string(),
+               session: Uuid::new_v4(),
+               shell_type: ShellType::Zsh,
+               cmd: "test".to_string(),
+               cwd: "test".to_string().into(),
+               exit_code: 0,
+               duration_sec: 0
+            };
+
+            match parse_log_file(&moved_file) {
+                Ok(entries) => {
+                    for entry in entries {
+                        match sync_log_to_db(&entry) {
+                            Ok(_) => println!("Log synced to database"),
+                            Err(e) => println!("Error syncing log to database: {}", e)
+                        }
+                    }
+                },
+                Err(e) => println!("Error parsing log file: {}", e)
+            }
+
+            match sync_log_to_db(&example_entry) {
+                Ok(_) => println!("Log synced to database"),
+                Err(e) => println!("Error syncing log to database: {}", e)
+            }
         }
     }
-
     println!("{}", args.init);
 }
