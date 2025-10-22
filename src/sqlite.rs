@@ -1,7 +1,10 @@
 use rusqlite::{Connection, Result};
-use std::{path::PathBuf, time::SystemTime,  io::{BufReader, BufRead}, path::Path};
+use std::{path::PathBuf, io::{BufReader, BufRead}, path::Path};
 use uuid::Uuid;
 use serde::Deserialize;
+
+pub const LOG_DIR: &str = "termstat";
+pub const LOG_FILE_NAME: &str = "termstat.log";
 
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
@@ -30,11 +33,11 @@ pub struct CommandEntry {
     pub exit_code: i32,
 
     #[serde(rename = "dur")]
-    pub duration_sec: i32,
+    pub duration_sec: i64,
 }
 
-pub fn sync_log_to_db(cmd: &CommandEntry) -> Result<()> {
-    let path = "./my_sqlite.db"; // Change path to .local/share
+pub fn insert_cmd_entry(cmd: &CommandEntry) -> Result<()> {
+    let path = dirs::data_dir().unwrap().join(LOG_DIR).join("termstat.db");
     let db = Connection::open(path)?;
     db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type INTEGER, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_sec INTEGER)", [])?;
 

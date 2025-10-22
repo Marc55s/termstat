@@ -34,14 +34,16 @@ termstats_precmd() {
         fi
     done
 
-    printf '{"ts":%s,"user":"%s","session":"%s","shell":"zsh","cmd":"%s","cwd":"%s","exit":%d,"dur":%d}\n' \
-        "$(date +%s%3N)" \
-        "$USER" \
-        "$TERMSTATS_SESSION_ID" \
-        "$sanitized_cmd" \
-        "$PWD" \
-        "$exit_status" \
-        "$duration" >> "$TERMSTATS_LOGFILE"
+    jq -n -c \
+        --argjson ts "$end_ms" \
+        --arg     user "$USER" \
+        --arg     session "$TERMSTATS_SESSION_ID" \
+        --arg     shell "zsh" \
+        --arg     cmd "$sanitized_cmd" \
+        --arg     cwd "$PWD" \
+        --argjson exit "$exit_status" \
+        --argjson dur "$duration" \
+        '$ARGS.named' >> "$TERMSTATS_LOGFILE"
 }
 
 # --- Load and register the hook functions ---
