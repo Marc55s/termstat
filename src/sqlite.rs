@@ -6,13 +6,6 @@ use serde::Deserialize;
 pub const LOG_DIR: &str = "termstat";
 pub const LOG_FILE_NAME: &str = "termstat.log";
 
-#[derive(Deserialize, Debug, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum ShellType {
-    Bash = 0,
-    Zsh = 1,
-}
-
 #[derive(Deserialize, Debug)]
 pub struct CommandEntry {
     #[serde(rename = "ts")]
@@ -23,7 +16,7 @@ pub struct CommandEntry {
     pub session: Uuid, 
 
     #[serde(rename = "shell")]
-    pub shell_type: ShellType,
+    pub shell_type: String,
 
     pub cmd: String,
     
@@ -39,12 +32,12 @@ pub struct CommandEntry {
 pub fn insert_cmd_entry(cmd: &CommandEntry) -> Result<()> {
     let path = dirs::data_dir().unwrap().join(LOG_DIR).join("termstat.db");
     let db = Connection::open(path)?;
-    db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type INTEGER, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_sec INTEGER)", [])?;
+    db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type TEXT, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_sec INTEGER)", [])?;
 
     db.execute("INSERT INTO commands 
-        (timestamp, user, session, cmd, cwd, exit_code, duration_sec)
-        VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [format!("{:?}", cmd.timestamp),  cmd.user.clone(), cmd.session.to_string(),  cmd.cmd.clone(), cmd.cwd.clone().into_os_string().into_string().unwrap(), cmd.exit_code.to_string(), cmd.duration_sec.to_string()])?;
+        (timestamp, user, session, shell_type, cmd, cwd, exit_code, duration_sec)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [format!("{:?}", cmd.timestamp),  cmd.user.clone(), cmd.session.to_string(), cmd.shell_type.clone(), cmd.cmd.clone(), cmd.cwd.clone().into_os_string().into_string().unwrap(), cmd.exit_code.to_string(), cmd.duration_sec.to_string()])?;
 
     Ok(())
 }

@@ -1,10 +1,9 @@
-pub mod sqlite;
+mod sqlite;
 
 use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
-use std::fs::{create_dir_all, read_to_string, remove_file, rename};
-use std::io::Error;
+use std::fs::{read_to_string, remove_file, rename};
 use std::path::PathBuf;
 use std::process::exit;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -21,17 +20,6 @@ struct Args {
     sync: bool,
 }
 
-fn create_term_dir() -> Result<(), Error> {
-    if let Some(state_directory) = data_dir() {
-        let term_dir: PathBuf = state_directory.join(LOG_DIR);
-
-        if !term_dir.exists() {
-            create_dir_all(&term_dir)?;
-        }
-    }
-    Ok(())
-}
-
 fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(state_directory) = data_dir() {
         let term_file: PathBuf = state_directory.join(LOG_DIR).join(LOG_FILE_NAME);
@@ -40,7 +28,7 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
 
         let moved_file = format!("{}{}", term_file.to_str().unwrap(), time_as_str);
         println!(
-            "Moving file: {} {}",
+            "Trying to move file: {} -> {}",
             term_file.to_str().unwrap(),
             moved_file
         );
@@ -53,7 +41,7 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
         let entries = match parse_log_file(&moved_file) {
             Ok(entries) => entries,
             Err(e) => {
-                eprintln!("Error parsing log file: {}. Renaming back.", e);
+                eprintln!("Error parsing log file: {}", e);
                 let _ = rename(&moved_file, &term_file);
                 return Err(e);
             }
@@ -83,11 +71,9 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let _ = create_term_dir();
 
     // init zshrc
     if args.init {
-        let _ = create_term_dir();
         let bash_config_path = PathBuf::from("init").join("termstat.zsh");
         if let Ok(bash_config) = read_to_string(bash_config_path) {
             println!("{}", bash_config);

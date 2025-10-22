@@ -13,12 +13,6 @@ termstats_preexec() {
 termstats_precmd() {
     echo "DEBUG: precmd is RUNNING, writing log." >&2 # Add this line
     local end_ms=$(date +%s%3N)
-    # ... rest of the function ...
-}
-
-# This function runs *after* the command (before the prompt)
-termstats_precmd() {
-    local end_ms=$(date +%s%3N)
     local start_ms="${TERMSTATS_CMD_START_MS:-$end_ms}"
     local duration=$((end_ms - start_ms))
     
