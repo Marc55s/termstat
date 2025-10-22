@@ -1,5 +1,7 @@
+mod queries;
 mod sqlite;
 
+use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd};
 use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
@@ -18,6 +20,10 @@ struct Args {
     /// Sync Log file with database
     #[arg(short, long)]
     sync: bool,
+
+    /// Statistics from the database
+    #[arg(long)]
+    stats: bool,
 }
 
 fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
@@ -81,6 +87,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         exit(0);
     } else if args.sync {
         process_log_file()?;
+    } else if args.stats {
+        most_frequent_cmd()?;
+        println!("{:-<20}","-");
+        cmd_runtimes()?;
+        println!("{:-<20}","-");
+        cmd_avg_runtime();
     } else {
         todo!("Fetch Statistics from db");
     }

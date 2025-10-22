@@ -29,13 +29,19 @@ pub struct CommandEntry {
     pub duration_sec: i64,
 }
 
-pub fn insert_cmd_entry(cmd: &CommandEntry) -> Result<()> {
+pub fn connect_db() -> Result<Connection> {
     let path = dirs::data_dir().unwrap().join(LOG_DIR).join("termstat.db");
     let db = Connection::open(path)?;
-    db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type TEXT, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_sec INTEGER)", [])?;
 
+    Ok(db)
+}
+
+pub fn insert_cmd_entry(cmd: &CommandEntry) -> Result<()> {
+    let db = connect_db()?;
+
+    db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type TEXT, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_ms INTEGER)", [])?;
     db.execute("INSERT INTO commands 
-        (timestamp, user, session, shell_type, cmd, cwd, exit_code, duration_sec)
+        (timestamp, user, session, shell_type, cmd, cwd, exit_code, duration_ms)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         [format!("{:?}", cmd.timestamp),  cmd.user.clone(), cmd.session.to_string(), cmd.shell_type.clone(), cmd.cmd.clone(), cmd.cwd.clone().into_os_string().into_string().unwrap(), cmd.exit_code.to_string(), cmd.duration_sec.to_string()])?;
 
