@@ -18,7 +18,6 @@ impl CommandStat for CommandRuntime {
         &self.command
     }
 
-    // We can even include formatting logic right in the trait implementation
     fn value(&self) -> Box<dyn Display> {
         Box::new(format!("{:.2}", self.hours))
     }
