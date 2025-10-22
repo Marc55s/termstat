@@ -1,4 +1,4 @@
-#   Termstat - A tracker for Commands
+# 💻 Termstat - A tracker for Commands
 A complete local command tracker, no Cloud involved. 
 
 ## How it works
