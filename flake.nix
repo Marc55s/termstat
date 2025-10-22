@@ -24,6 +24,7 @@
 
           shellHook = ''
             echo "Termstat env loaded!"
+            [ -d "target/debug" ] && ln -sf init/ target/debug/init
           '';
         };
       }
