@@ -1,6 +1,8 @@
+mod cli;
 mod queries;
 mod sqlite;
 
+use crate::cli::{Cli, Commands};
 use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd};
 use crate::sqlite::*;
 use clap::Parser;
@@ -9,22 +11,6 @@ use std::fs::{remove_file, rename};
 use std::path::PathBuf;
 use std::process::exit;
 use std::time::{SystemTime, UNIX_EPOCH};
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Init shell into .SHELLrc file
-    #[arg(short, long)]
-    init: bool,
-
-    /// Sync Log file with database
-    #[arg(short, long)]
-    sync: bool,
-
-    /// Statistics from the database
-    #[arg(long)]
-    stats: bool,
-}
 
 fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(state_directory) = data_dir() {
@@ -65,7 +51,10 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if all_succeeded {
-            println!("Synced {} log entries to database successfully", entries.len());
+            println!(
+                "Synced {} log entries to database successfully",
+                entries.len()
+            );
             remove_file(&moved_file).unwrap();
         }
     }
@@ -74,26 +63,39 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    // init zshrc
-    if args.init {
-        let shell_config = include_str!("init/termstat.zsh");
-        println!("{}", shell_config);
+    match cli.command {
+        Some(Commands::Init { shell_type }) => {
+            if shell_type == "zsh" {
+                let shell_config = include_str!("init/termstat.zsh");
+                println!("{}", shell_config);
+                exit(0);
+            } else {
+                eprintln!("Unknown or unsupported shell type: {}", shell_type);
+                exit(1);
+            }
+        }
 
-        exit(0);
-    } else if args.sync {
-        process_log_file()?;
-    } else if args.stats {
-        most_frequent_cmd()?;
-        println!("{:-<20}","-");
-        cmd_runtimes()?;
-        println!("{:-<20}","-");
-        cmd_avg_runtime()?;
-    } else {
-        println!("Welcome to Termstat!");
-        println!("Usage: termstat [OPTIONS]");
-        println!("Try 'termstat --help' for more information.");
+        Some(Commands::Sync) => process_log_file()?,
+
+        Some(Commands::Stats { daily: _, weekly: _, monthly: _ }) => {
+            most_frequent_cmd()?;
+            println!("{:-<20}", "-");
+            cmd_runtimes()?;
+            println!("{:-<20}", "-");
+            cmd_avg_runtime()?;
+        }
+
+        Some(Commands::Clean { remove_all_entries: _}) => {
+            todo!("Clean command will be implemented in the future");
+        }
+
+        None => {
+            println!("Welcome to Termstat!");
+            println!("Usage: termstat [OPTIONS]");
+            println!("Try 'termstat --help' for more information.");
+        }
     }
 
     Ok(())
