@@ -22,7 +22,7 @@ A complete local command tracker, no Cloud involved.
 ## Commands
 
 ## To Do
-- [ ] Switch from flags to subcommands
+- [x] Switch from flags to subcommands
 - [ ] Systemd service for syncing automatically
 - [ ] Support multiple Shelltypes
 - [ ] Display statistics in a fancy way with a TUI-Lib
@@ -31,3 +31,8 @@ A complete local command tracker, no Cloud involved.
 - [ ] Publish to Crates.io
 - [ ] List available Commands
 - [ ] Far future: Support for multiple databases / Syncing across devices
+
+## Queries
+- Most used command of the day|week|month
+- Commands sorted by length
+- Common command pipes
