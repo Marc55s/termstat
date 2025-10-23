@@ -5,7 +5,7 @@ use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd};
 use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
-use std::fs::{read_to_string, remove_file, rename};
+use std::fs::{remove_file, rename};
 use std::path::PathBuf;
 use std::process::exit;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -54,11 +54,9 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut all_succeeded = true;
-        for entry in entries {
-            match insert_cmd_entry(&entry) {
-                Ok(_) => {
-                    println!("Log-Entry synced to database");
-                }
+        for entry in &entries {
+            match insert_cmd_entry(entry) {
+                Ok(_) => (),
                 Err(e) => {
                     eprintln!("Error syncing log to database: {}", e);
                     all_succeeded = false;
@@ -67,7 +65,7 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if all_succeeded {
-            println!("Synced all log entries to database successfully");
+            println!("Synced {} log entries to database successfully", entries.len());
             remove_file(&moved_file).unwrap();
         }
     }
@@ -80,10 +78,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // init zshrc
     if args.init {
-        let bash_config_path = PathBuf::from("init").join("termstat.zsh");
-        if let Ok(bash_config) = read_to_string(bash_config_path) {
-            println!("{}", bash_config);
-        }
+        let shell_config = include_str!("init/termstat.zsh");
+        println!("{}", shell_config);
+
         exit(0);
     } else if args.sync {
         process_log_file()?;
@@ -92,9 +89,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{:-<20}","-");
         cmd_runtimes()?;
         println!("{:-<20}","-");
-        cmd_avg_runtime();
+        cmd_avg_runtime()?;
     } else {
-        todo!("Fetch Statistics from db");
+        println!("Welcome to Termstat!");
+        println!("Usage: termstat [OPTIONS]");
+        println!("Try 'termstat --help' for more information.");
     }
 
     Ok(())
