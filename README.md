@@ -8,7 +8,12 @@ A complete local command tracker, no Cloud involved.
 2. If the sync command is called the logfile entries are inserted into a Sqlite database
 
 ## Installation
-- Shell prehook
+### Shell prehook
+Add the following to your .zshrc
+~~~sh
+eval "$(termstat init --shell-type zsh)"
+~~~
+
 - Nix
 - Cargo
 - From Source
@@ -20,6 +25,10 @@ A complete local command tracker, no Cloud involved.
 - [ ] ...
 
 ## Commands
+- [x] sync
+- [x] stats --daily, --weekly, --monthly
+- [x] init --shell-type [SHELL]
+- [ ] clean
 
 ## To Do
 - [x] Switch from flags to subcommands
@@ -29,10 +38,11 @@ A complete local command tracker, no Cloud involved.
 - [ ] Write Installation Manual
 - [ ] Nix Packaging / Module
 - [ ] Publish to Crates.io
-- [ ] List available Commands
+- [x] List available Commands
 - [ ] Far future: Support for multiple databases / Syncing across devices
 
 ## Queries
 - Most used command of the day|week|month
 - Commands sorted by length
 - Common command pipes
+- Top exectued binaries
