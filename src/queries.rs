@@ -1,8 +1,8 @@
-use crate::sqlite::connect_db;
+use crate::{sqlite::connect_db, table::create_table};
 use rusqlite::{Result, Row};
 use std::fmt::Display;
 
-trait CommandStat {
+pub trait CommandStat {
     fn command(&self) -> &str;
     fn value(&self) -> Box<dyn Display>;
 }
@@ -41,22 +41,8 @@ where
         return Ok(());
     }
 
-    let longest_cmd_length = commands
-        .iter()
-        .map(|cmd| cmd.command().len())
-        .max()
-        .unwrap_or(10);
-
-    println!("{:<width$} | Value", "Command", width = longest_cmd_length);
-    println!("{:-<width$}-|-{:-<5}", "", "", width = longest_cmd_length);
-
-    for cmd in commands {
-        println!(
-            "{:<width$} | {}",
-            cmd.command(),
-            cmd.value(),
-            width = longest_cmd_length
-        );
+    if let Ok(table) = create_table(commands) {
+        println!("{}", table);
     }
 
     Ok(())

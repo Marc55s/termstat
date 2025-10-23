@@ -1,6 +1,7 @@
 mod cli;
 mod queries;
 mod sqlite;
+mod table;
 
 use crate::cli::{Cli, Commands};
 use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd};
@@ -81,9 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Some(Commands::Stats { daily: _, weekly: _, monthly: _ }) => {
             most_frequent_cmd()?;
-            println!("{:-<20}", "-");
             cmd_runtimes()?;
-            println!("{:-<20}", "-");
             cmd_avg_runtime()?;
         }
 
