@@ -16,7 +16,7 @@ on:
 # Set a default environment variable for your binary name.
 # !! CHANGE THIS TO YOUR BINARY'S NAME !!
 env:
-  BINARY_NAME: your-binary-name-here
+  BINARY_NAME: termstat
 
 jobs:
   # Job to build the binary for Linux x86_64
