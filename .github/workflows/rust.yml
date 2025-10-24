@@ -16,13 +16,18 @@ on:
 # Set a default environment variable for your binary name.
 # !! CHANGE THIS TO YOUR BINARY'S NAME !!
 env:
-  BINARY_NAME: termstat
+  BINARY_NAME: your-binary-name-here
 
 jobs:
   # Job to build the binary for Linux x86_64
   build-and-release:
     name: Build & Release (Linux x86_64)
     runs-on: ubuntu-latest # Hardcode for Linux
+    env:
+      # Limit the number of parallel build jobs to 2.
+      # This can prevent "Operation was canceled" errors, which are
+      # often caused by the runner running out of memory (OOMKilled).
+      CARGO_BUILD_JOBS: 2
     
     steps:
       - name: Checkout repository
@@ -87,4 +92,3 @@ jobs:
           
           # Set the release name to be the same as the tag
           name: ${{ github.ref_name }}
-
