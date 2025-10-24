@@ -2,16 +2,18 @@ mod cli;
 mod queries;
 mod sqlite;
 mod table;
+mod util;
 
+use crate::util::duration::DurationExt;
 use crate::cli::{Cli, Commands};
-use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd};
+use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd, most_used_command};
 use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
 use std::fs::{remove_file, rename};
 use std::path::PathBuf;
 use std::process::exit;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(state_directory) = data_dir() {
@@ -80,10 +82,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Some(Commands::Sync) => process_log_file()?,
 
-        Some(Commands::Stats { daily: _, weekly: _, monthly: _ }) => {
-            most_frequent_cmd()?;
-            cmd_runtimes()?;
-            cmd_avg_runtime()?;
+        Some(Commands::Stats { daily , weekly, monthly }) => {
+            println!("daily: {} weekly: {} monthly: {}", daily, weekly, monthly);
+            // most_frequent_cmd()?;
+            // cmd_runtimes()?;
+            // cmd_avg_runtime()?;
+            most_used_command(DurationExt::from_weeks(1))?;
         }
 
         Some(Commands::Clean { remove_all_entries: _}) => {
