@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ArgGroup};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -19,17 +19,22 @@ pub enum Commands {
     },
 
     /// Print statistics about your command usage
+    // ArgGroups
+    #[command(group = ArgGroup::new("time_interval")
+        .required(false)
+        .multiple(false)
+    )]
     Stats {
         /// Print daily statistics about your command usage
-        #[arg(short, long)]
+        #[arg(short, long, group = "time_interval")]
         daily: bool,
 
         /// Print weekly statistics about your command usage
-        #[arg(short, long)]
+        #[arg(short, long, group = "time_interval")]
         weekly: bool,
 
         /// Print monthly statistics about your command usage
-        #[arg(short, long)]
+        #[arg(short, long, group = "time_interval")]
         monthly: bool,
     },
 
