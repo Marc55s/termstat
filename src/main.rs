@@ -83,11 +83,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(Commands::Sync) => process_log_file()?,
 
         Some(Commands::Stats { daily , weekly, monthly }) => {
-            println!("daily: {} weekly: {} monthly: {}", daily, weekly, monthly);
             // most_frequent_cmd()?;
             // cmd_runtimes()?;
             // cmd_avg_runtime()?;
-            most_used_command(DurationExt::from_weeks(1))?;
+            if daily {
+                most_used_command(DurationExt::from_days(1))?;
+            }
+            if weekly {
+                most_used_command(DurationExt::from_weeks(1))?;
+            }
+            if monthly {
+                most_used_command(DurationExt::from_weeks(4))?;
+            }
         }
 
         Some(Commands::Clean { remove_all_entries: _}) => {

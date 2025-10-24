@@ -147,7 +147,7 @@ pub fn most_used_command(time_interval: Duration) -> Result<()> {
 
     println!("time_interval: {}", time_interval);
 
-    let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY timestamp ASC LIMIT 10";
+    let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY count DESC LIMIT 10";
 
     query_and_print_stats(
         "Top 10 Commands by timeinterval",
