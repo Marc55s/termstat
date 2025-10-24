@@ -42,7 +42,7 @@ eval "$(termstat init --shell-type zsh)"
 - [ ] Far future: Support for multiple databases / Syncing across devices
 
 ## Queries
-- Most used command of the day|week|month
-- Commands sorted by length
-- Common command pipes
-- Top exectued binaries
+- [x] Most used command of the day|week|month
+- [ ] Commands sorted by length
+- [ ] Common command pipes
+- [ ] Top exectued binaries
