@@ -1,9 +1,12 @@
+ #![allow(warnings)] 
 mod cli;
 mod queries;
 mod sqlite;
 mod table;
 mod util;
+mod print_stats;
 
+use crate::print_stats::print_stats;
 use crate::util::duration::DurationExt;
 use crate::cli::{Cli, Commands};
 use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd, most_used_command};
@@ -83,17 +86,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(Commands::Sync) => process_log_file()?,
 
         Some(Commands::Stats { daily , weekly, monthly }) => {
-            // most_frequent_cmd()?;
-            // cmd_runtimes()?;
-            // cmd_avg_runtime()?;
             if daily {
-                most_used_command(DurationExt::from_days(1))?;
+                let stats = vec![most_used_command(DurationExt::from_days(1))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+                print_stats(stats)?;
             }
             if weekly {
-                most_used_command(DurationExt::from_weeks(1))?;
+                let stats = vec![most_used_command(DurationExt::from_weeks(1))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+                print_stats(stats)?;
             }
             if monthly {
-                most_used_command(DurationExt::from_weeks(4))?;
+                let stats = vec![most_used_command(DurationExt::from_weeks(4))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+                print_stats(stats)?;
             }
         }
 

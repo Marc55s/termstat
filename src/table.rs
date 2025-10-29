@@ -6,6 +6,11 @@ use rusqlite::{Result};
 
 pub fn create_table<T>(cmd_stats: Vec<T>) -> Result<Table> where T: CommandStat {
     let mut table = Table::new();
+
+    if cmd_stats.is_empty() {
+        return Ok(table);        
+    }
+
     table.set_header(vec!["Cmd", "Value"])
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS);

@@ -2,6 +2,7 @@ use crate::{sqlite::connect_db, table::create_table};
 use rusqlite::{Params, Result, Row, params};
 use std::fmt::Display;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use comfy_table::Table;
 
 pub trait CommandStat {
     fn command(&self) -> &str;
@@ -24,30 +25,19 @@ impl CommandStat for CommandRuntime {
     }
 }
 
-fn query_and_print_stats<T, F, R>(title: &str, sql: &str, row_mapper: F, params: R) -> Result<()>
+fn query_statistic<T, F, R>(title: &str, sql: &str, row_mapper: F, params: R) -> Result<Table>
 where
     T: CommandStat,
     F: FnMut(&Row) -> Result<T>,
     R: Params,
 {
-    println!("\n## {} ##", title);
-
     let db = connect_db()?;
     let mut stmt = db.prepare(sql)?;
 
     let rows = stmt.query_map(params, row_mapper)?;
     let commands: Vec<T> = rows.collect::<Result<Vec<_>, _>>()?;
 
-    if commands.is_empty() {
-        println!("No data found.");
-        return Ok(());
-    }
-
-    if let Ok(table) = create_table(commands) {
-        println!("{}", table);
-    }
-
-    Ok(())
+    create_table(commands)
 }
 
 #[derive(Debug)]
@@ -66,14 +56,14 @@ impl CommandStat for CommandCount {
     }
 }
 
-pub fn most_frequent_cmd() -> Result<()> {
+pub fn most_frequent_cmd() -> Result<Table> {
     let sql = "SELECT cmd as command, COUNT(cmd) as count 
                FROM commands 
                GROUP BY cmd 
                ORDER BY count DESC 
-               LIMIT 10";
+               LIMIT 3";
 
-    query_and_print_stats(
+    query_statistic(
         "Top 10 Most Frequent Commands",
         sql,
         |row| {
@@ -86,14 +76,14 @@ pub fn most_frequent_cmd() -> Result<()> {
     )
 }
 
-pub fn cmd_runtimes() -> Result<()> {
+pub fn cmd_runtimes() -> Result<Table> {
     let sql = "SELECT cmd, (SUM(duration_ms) / 3600000.0) as runtime_hours 
                FROM commands 
                GROUP BY cmd 
                ORDER BY runtime_hours DESC 
-               LIMIT 10";
+               LIMIT 3";
 
-    query_and_print_stats(
+    query_statistic(
         "Top 10 Commands by Runtime (hours)",
         sql,
         |row| {
@@ -121,14 +111,14 @@ impl CommandStat for CommandAvgRuntime {
     }
 }
 
-pub fn cmd_avg_runtime() -> Result<()> {
+pub fn cmd_avg_runtime() -> Result<Table> {
     let sql = "SELECT cmd, AVG(duration_ms) as avg_ms
                FROM commands 
                GROUP BY cmd 
                ORDER BY avg_ms DESC 
-               LIMIT 10";
+               LIMIT 3";
 
-    query_and_print_stats(
+    query_statistic(
         "Top 10 Commands by Average Runtime (ms)",
         sql,
         |row| {
@@ -141,15 +131,15 @@ pub fn cmd_avg_runtime() -> Result<()> {
     )
 }
 
-pub fn most_used_command(time_interval: Duration) -> Result<()> {
+pub fn most_used_command(time_interval: Duration) -> Result<Table> {
     let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
 
     println!("time_interval: {}", time_interval);
 
-    let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY count DESC LIMIT 10";
+    let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY count DESC LIMIT 3";
 
-    query_and_print_stats(
+    query_statistic(
         "Top 10 Commands by timeinterval",
         sql,
         |row| {
