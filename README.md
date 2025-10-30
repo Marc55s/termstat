@@ -17,8 +17,9 @@ Add the following to your .zshrc
 eval "$(termstat init --shell-type zsh)"
 ~~~
 ### Nix
-```Nix
 Install nix and configure terstat via Homemanager
+
+```Nix
 # flake.nix
 
 # add input
