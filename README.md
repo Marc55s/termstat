@@ -41,6 +41,10 @@ outputs = inputs@{self, nixpkgs, termstat ... }:
     programs.termstat = {
         enable = true;
         enableZshIntegration = true;
+        systemd = {
+            enable = true;
+            onCalendar = "DayOfWeek Year-Month-Day Hour:Minute:Second";  # defaults to daily
+        }
 
         # Not supported yet
         # enableBashIntegration = true;

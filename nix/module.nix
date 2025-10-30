@@ -1,10 +1,11 @@
-{ config, pkgs, pkgs-unstable, lib, ... }: 
-let 
-   inherit (lib) mkIf mkOption types;
+{ config, pkgs, pkgs-unstable, lib, ... }:
+let
+  inherit (lib) mkIf mkOption types;
 
-   cfg = config.programs.termstat;
+  cfg = config.programs.termstat;
+  syncCfg = cfg.systemd;
 
-   # initFish = if cfg.enableInteractive then "interactiveShellInit" else "shellInitLast";
+  # initFish = if cfg.enableInteractive then "interactiveShellInit" else "shellInitLast";
 in {
   meta.maintainers = [ ];
 
@@ -13,15 +14,20 @@ in {
 
     package = lib.mkPackageOption pkgs "termstat" { };
 
-    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableBashIntegration =
+      lib.hm.shell.mkBashIntegrationOption { inherit config; };
 
-    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableFishIntegration =
+      lib.hm.shell.mkFishIntegrationOption { inherit config; };
 
-    enableIonIntegration = lib.hm.shell.mkIonIntegrationOption { inherit config; };
+    enableIonIntegration =
+      lib.hm.shell.mkIonIntegrationOption { inherit config; };
 
-    enableNushellIntegration = lib.hm.shell.mkNushellIntegrationOption { inherit config; };
+    enableNushellIntegration =
+      lib.hm.shell.mkNushellIntegrationOption { inherit config; };
 
-    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
+    enableZshIntegration =
+      lib.hm.shell.mkZshIntegrationOption { inherit config; };
 
     enableInteractive = mkOption {
       type = types.bool;
@@ -34,7 +40,25 @@ in {
       '';
     };
 
+    systemd = {
+      enable = lib.mkEnableOption "periodic termstat sync timer";
+
+      onCalendar = mkOption {
+        type = types.str;
+        default = "daily";
+        description = "Systemd OnCalendar expression for when to run the sync.";
+        example = "hourly";
+      };
+
+      command = mkOption {
+        type = types.str;
+        default = "sync";
+        description = "The termstat subcommand to run for syncing.";
+      };
+    };
+
   };
+
   config = mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
@@ -75,6 +99,27 @@ in {
           ''
         }
       '';
+    };
+
+    # Service Unit-File
+    systemd.user.services.termstat-sync = mkIf syncCfg.enable {
+      Unit = { Description = "Termstat Sync Command"; };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe cfg.package} ${syncCfg.command}";
+      };
+    };
+
+    # Timer Unit-File
+    systemd.user.timers.termstat-sync = mkIf syncCfg.enable {
+      Unit = { Description = "Run termstat sync command periodically"; };
+      Timer = {
+        OnCalendar = syncCfg.onCalendar;
+        Persistent = true; # Run on next boot if a run was missed
+      };
+      Install = {
+        WantedBy = [ "timers.target" ];
+      };
     };
   };
 }
