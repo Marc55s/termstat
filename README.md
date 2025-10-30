@@ -6,8 +6,8 @@ A complete local command tracker, no Cloud involved. Feel free to try it, but ke
 2. If the sync command is called the logfile entries are inserted into a Sqlite database
 
 ## Installation
-- [ ] Nix
-    - [ ] Systemd
+- [x] Nix
+    - [x] Systemd
 - [ ] Cargo
 - [ ] From Source
 
@@ -94,8 +94,8 @@ termstat stats --monthly/-m
 ## To Do
 - [x] Switch from flags to subcommands
 - [x] List available Commands
-- [ ] Nix Packaging / Module
-- [ ] Systemd service for syncing automatically
+- [x] Systemd service for syncing automatically
+- [x] Nix Packaging / Module
 - [ ] Support multiple Shelltypes
 - [ ] Display statistics in a fancy way with a TUI-Lib
 - [ ] Write Installation Manual
