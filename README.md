@@ -54,7 +54,21 @@ outputs = inputs@{self, nixpkgs, termstat ... }:
 }
 
 ```
+## Usage
+After the initalization the following commands are available:
+> Help
+![](/screenshots/help_command.png)
 
+> Sync with database
+![](/screenshots/sync_command.png)
+> Statistics
+![](/screenshots/stats_daily.png)
+
+For the statistics these other commandflags are available:
+```Bash
+termstat stats # default to termstat stats --daily/-d
+termstat stats --weekly/-w
+termstat stats --monthly/-m
 
 ## Currently Supported Shells
 - [x] Zsh
