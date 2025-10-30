@@ -1,22 +1,60 @@
-# 💻 Termstat - A tracker for Commands
-A complete local command tracker, no Cloud involved. 
-
-! Still in development !
+# 💻 Termstat - A tracker for Commands !!!(Still in development)!!!
+A complete local command tracker, no Cloud involved. Feel free to try it, but keep in mind, that some things may break in following updates.
 
 ## How it works
 1. A Shell prehook logs all commands into a logfile
 2. If the sync command is called the logfile entries are inserted into a Sqlite database
 
 ## Installation
+- [ ] Nix
+    - [ ] Systemd
+- [ ] Cargo
+- [ ] From Source
+
 ### Shell prehook
 Add the following to your .zshrc
 ~~~sh
 eval "$(termstat init --shell-type zsh)"
 ~~~
+### Nix
+```Nix
+Install nix and configure terstat via Homemanager
+# flake.nix
 
-- Nix
-- Cargo
-- From Source
+# add input
+inputs = {
+    termstat = {
+        url = "github:marc55s/termstat";
+        inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+}
+# add overlay to your outputs
+outputs = inputs@{self, nixpkgs, termstat ... }:
+    pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ inputs.termstat.overlays.default];
+    }
+
+# home.nix
+{termstat, ...}:
+{
+    programs.termstat = {
+        enable = true;
+        enableZshIntegration = true;
+
+        # Not supported yet
+        # enableBashIntegration = true;
+        # enableFishIntegration = true;
+        # enableIonIntegration = true;
+        # enableNushellIntegration = true;
+    };
+
+    # add the modules to your imports
+    imports = [termstat.homeManagerModules.default];
+}
+
+```
+
 
 ## Currently Supported Shells
 - [x] Zsh
@@ -32,13 +70,13 @@ eval "$(termstat init --shell-type zsh)"
 
 ## To Do
 - [x] Switch from flags to subcommands
+- [x] List available Commands
+- [ ] Nix Packaging / Module
 - [ ] Systemd service for syncing automatically
 - [ ] Support multiple Shelltypes
 - [ ] Display statistics in a fancy way with a TUI-Lib
 - [ ] Write Installation Manual
-- [ ] Nix Packaging / Module
 - [ ] Publish to Crates.io
-- [x] List available Commands
 - [ ] Far future: Support for multiple databases / Syncing across devices
 
 ## Queries
