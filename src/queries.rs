@@ -1,4 +1,4 @@
-use crate::{sqlite::connect_db, table::create_table};
+use crate::{sqlite::connect_db, table::create_cmd_table};
 use rusqlite::{Params, Result, Row, params};
 use std::fmt::Display;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -21,7 +21,7 @@ impl CommandStat for CommandRuntime {
     }
 
     fn value(&self) -> Box<dyn Display> {
-        Box::new(format!("{:.2}", self.hours))
+        Box::new(format!("{:.2} h", self.hours))
     }
 }
 
@@ -37,7 +37,7 @@ where
     let rows = stmt.query_map(params, row_mapper)?;
     let commands: Vec<T> = rows.collect::<Result<Vec<_>, _>>()?;
 
-    create_table(commands)
+    create_cmd_table(commands)
 }
 
 #[derive(Debug)]
@@ -76,9 +76,12 @@ pub fn most_frequent_cmd() -> Result<Table> {
     )
 }
 
-pub fn cmd_runtimes() -> Result<Table> {
+pub fn cmd_runtimes(time_interval: Duration) -> Result<Table> {
+    let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
     let sql = "SELECT cmd, (SUM(duration_ms) / 3600000.0) as runtime_hours 
                FROM commands 
+               WHERE timestamp > ?1
                GROUP BY cmd 
                ORDER BY runtime_hours DESC 
                LIMIT 3";
@@ -92,7 +95,7 @@ pub fn cmd_runtimes() -> Result<Table> {
                 hours: row.get(1)?,
             })
         },
-        [],
+        params![time_interval],
     )
 }
 
@@ -107,13 +110,18 @@ impl CommandStat for CommandAvgRuntime {
         &self.command
     }
     fn value(&self) -> Box<dyn Display> {
-        Box::new(format!("{:.0} ms", self.avg_ms))
+        Box::new(format!("{:.2} h", self.avg_ms))
     }
 }
 
-pub fn cmd_avg_runtime() -> Result<Table> {
-    let sql = "SELECT cmd, AVG(duration_ms) as avg_ms
+
+pub fn cmd_avg_runtime(time_interval: Duration) -> Result<Table> {
+    let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
+
+    let sql = "SELECT cmd, (AVG(duration_ms) / 3600000.0) as avg_ms
                FROM commands 
+               WHERE timestamp > ?1
                GROUP BY cmd 
                ORDER BY avg_ms DESC 
                LIMIT 3";
@@ -127,15 +135,13 @@ pub fn cmd_avg_runtime() -> Result<Table> {
                 avg_ms: row.get(1)?,
             })
         },
-        [],
+        params![time_interval],
     )
 }
 
 pub fn most_used_command(time_interval: Duration) -> Result<Table> {
     let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
-
-    println!("time_interval: {}", time_interval);
 
     let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY count DESC LIMIT 3";
 

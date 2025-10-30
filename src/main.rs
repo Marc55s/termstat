@@ -86,16 +86,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(Commands::Sync) => process_log_file()?,
 
         Some(Commands::Stats { daily , weekly, monthly }) => {
-            if daily {
-                let stats = vec![most_used_command(DurationExt::from_days(1))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+            let no_flags_specified = !daily && !weekly && !monthly; // run the daily as default
+             
+            if daily || no_flags_specified  {
+                let time_interval = DurationExt::from_days(1);
+                let stats = vec![most_used_command(time_interval)?, cmd_avg_runtime(time_interval)?, cmd_runtimes(time_interval)?]; 
+                println!("Statistics for the last day:"); 
                 print_stats(stats)?;
             }
             if weekly {
-                let stats = vec![most_used_command(DurationExt::from_weeks(1))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+                let time_interval = DurationExt::from_weeks(1);
+                let stats = vec![most_used_command(time_interval)?, cmd_avg_runtime(time_interval)?, cmd_runtimes(time_interval)?]; 
+                println!("Statistics for the last week:"); 
                 print_stats(stats)?;
             }
             if monthly {
-                let stats = vec![most_used_command(DurationExt::from_weeks(4))?, cmd_avg_runtime()?, cmd_runtimes()?]; 
+                let time_interval = DurationExt::from_weeks(4);
+                let stats = vec![most_used_command(time_interval)?, cmd_avg_runtime(time_interval)?, cmd_runtimes(time_interval)?]; 
+                println!("Statistics for the last month:"); 
                 print_stats(stats)?;
             }
         }
