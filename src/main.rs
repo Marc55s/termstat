@@ -36,7 +36,7 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
             exit(1);
         }
 
-        let entries = match parse_log_file(&moved_file) {
+        let mut entries = match parse_log_file(&moved_file) {
             Ok(entries) => entries,
             Err(e) => {
                 eprintln!("Error parsing log file: {}", e);
@@ -46,7 +46,7 @@ fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut all_succeeded = true;
-        for entry in &entries {
+        for entry in entries.iter_mut() {
             match insert_cmd_entry(entry) {
                 Ok(_) => (),
                 Err(e) => {
