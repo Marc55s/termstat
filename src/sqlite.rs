@@ -2,6 +2,8 @@ use rusqlite::{Connection, Result};
 use std::{path::PathBuf, io::{BufReader, BufRead}, path::Path};
 use uuid::Uuid;
 use serde::Deserialize;
+use regex::Regex;
+use crate::util::redact::redact_command;
 
 pub const LOG_DIR: &str = "termstat";
 pub const LOG_FILE_NAME: &str = "termstat.log";
@@ -36,10 +38,15 @@ pub fn connect_db() -> Result<Connection> {
     Ok(db)
 }
 
-pub fn insert_cmd_entry(cmd: &CommandEntry) -> Result<()> {
+pub fn insert_cmd_entry(cmd: &mut CommandEntry) -> Result<()> {
     let db = connect_db()?;
 
-    db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type TEXT, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_ms INTEGER)", [])?;
+    if !db.table_exists(Some("main"), "commands")? {
+        db.execute("CREATE TABLE IF NOT EXISTS commands (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, user TEXT, session TEXT, shell_type TEXT, cmd TEXT, cwd TEXT, exit_code INTEGER, duration_ms INTEGER)", [])?;
+    }
+
+    cmd.cmd = redact_command(cmd.cmd.as_ref()).unwrap();
+
     db.execute("INSERT INTO commands 
         (timestamp, user, session, shell_type, cmd, cwd, exit_code, duration_ms)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
