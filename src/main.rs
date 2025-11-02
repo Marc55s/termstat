@@ -1,4 +1,3 @@
- #![allow(warnings)] 
 mod cli;
 mod queries;
 mod sqlite;
@@ -9,14 +8,14 @@ mod print_stats;
 use crate::print_stats::print_stats;
 use crate::util::duration::DurationExt;
 use crate::cli::{Cli, Commands};
-use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_frequent_cmd, most_used_command};
+use crate::queries::{cmd_avg_runtime, cmd_runtimes, most_used_command};
 use crate::sqlite::*;
 use clap::Parser;
 use dirs::data_dir;
 use std::fs::{remove_file, rename};
 use std::path::PathBuf;
 use std::process::exit;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn process_log_file() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(state_directory) = data_dir() {

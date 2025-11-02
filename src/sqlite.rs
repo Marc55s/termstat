@@ -2,7 +2,6 @@ use rusqlite::{Connection, Result};
 use std::{path::PathBuf, io::{BufReader, BufRead}, path::Path};
 use uuid::Uuid;
 use serde::Deserialize;
-use regex::Regex;
 use crate::util::redact::redact_command;
 
 pub const LOG_DIR: &str = "termstat";
