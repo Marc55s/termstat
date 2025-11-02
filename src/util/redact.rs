@@ -1,19 +1,16 @@
 use regex::{Regex, Captures};
-use rusqlite::Error as RusqliteError;
 
-// --- Setup: Custom Error Type and Result ---
-// Define a simple custom error for use in the Result<T, E> type.
 #[derive(Debug)]
 pub enum RedactionError {
-    Regex(regex::Error),
+    Regex,
 }
+
 
 impl From<regex::Error> for RedactionError {
-    fn from(err: regex::Error) -> Self {
-        RedactionError::Regex(err)
+    fn from(_err: regex::Error) -> Self {
+        RedactionError::Regex
     }
 }
-
 
 // Result alias for convenience
 pub type Result<T> = std::result::Result<T, RedactionError>;
