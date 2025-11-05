@@ -64,26 +64,6 @@ impl CommandStat for CommandCount {
     }
 }
 
-pub fn most_frequent_cmd() -> Result<PrintStat> {
-    let sql = "SELECT cmd as command, COUNT(cmd) as count 
-               FROM commands 
-               GROUP BY cmd 
-               ORDER BY count DESC 
-               LIMIT 3";
-
-    query_statistic(
-        "Top 10 Most Frequent Commands",
-        sql,
-        |row| {
-            Ok(CommandCount {
-                command: row.get(0)?,
-                count: row.get(1)?,
-            })
-        },
-        [],
-    )
-}
-
 pub fn cmd_runtimes(time_interval: Duration) -> Result<PrintStat> {
     let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
@@ -135,7 +115,7 @@ pub fn cmd_avg_runtime(time_interval: Duration) -> Result<PrintStat> {
                LIMIT 3";
 
     query_statistic(
-        "Top 3 Commands by Average Runtime (ms)",
+        "Top 3 Commands by Average Runtime (hours)",
         sql,
         |row| {
             Ok(CommandAvgRuntime {
