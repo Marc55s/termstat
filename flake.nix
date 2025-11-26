@@ -25,9 +25,9 @@
 
         termstat-pkg = pkgs.rustPlatform.buildRustPackage {
           meta = {
-            description = "A tool for terminal stats"; # Good to add
+            description = "A tool for terminal stats";
             mainProgram = "termstat";
-            license = pkgs.lib.licenses.agpl3Only; # <-- Here is your license
+            license = pkgs.lib.licenses.agpl3Only;
           };
 
           pname = "termstat";

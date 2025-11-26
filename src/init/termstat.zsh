@@ -51,7 +51,6 @@ _termstats_log_entry_async() {
 }
 
 termstats_precmd() {
-    # --- FIX: Don't log if no command was run (e.g., empty prompt) ---
     [[ -z "$TERMSTATS_LAST_CMD" ]] && return
 
     # echo "DEBUG: precmd is RUNNING, logging async." >&2
