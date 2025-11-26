@@ -69,7 +69,7 @@ pub fn cmd_runtimes(time_interval: Duration) -> Result<PrintStat> {
     let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
     let sql = "SELECT cmd, (SUM(duration_ms) / 3600000.0) as runtime_hours 
                FROM commands 
-               WHERE timestamp > ?1
+               WHERE CAST(timestamp as INTEGER) > ?1
                GROUP BY cmd 
                ORDER BY runtime_hours DESC 
                LIMIT 3";
@@ -109,7 +109,7 @@ pub fn cmd_avg_runtime(time_interval: Duration) -> Result<PrintStat> {
 
     let sql = "SELECT cmd, (AVG(duration_ms) / 3600000.0) as avg_ms
                FROM commands 
-               WHERE timestamp > ?1
+               WHERE CAST(timestamp as INTEGER) > ?1
                GROUP BY cmd 
                ORDER BY avg_ms DESC 
                LIMIT 3";
@@ -131,10 +131,15 @@ pub fn most_used_command(time_interval: Duration) -> Result<PrintStat> {
     let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let time_interval = (current_time.as_millis() - time_interval.as_millis()) as i64;
 
-    let sql = "SELECT cmd as command, COUNT(*) AS count FROM commands WHERE timestamp > ?1 GROUP BY cmd ORDER BY count DESC LIMIT 3";
+    let sql = "SELECT cmd as command, COUNT(*) AS count
+               FROM commands 
+               WHERE CAST(timestamp as INTEGER) > ?1
+               GROUP BY cmd 
+               ORDER BY count DESC
+               LIMIT 3";
 
     query_statistic(
-        "Top 3 Commands by timeinterval",
+        "Top 3 Commands by most used",
         sql,
         |row| {
             Ok(CommandCount {

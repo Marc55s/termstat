@@ -36,6 +36,10 @@ pub enum Commands {
         /// Print monthly statistics about your command usage
         #[arg(short, long, group = "time_interval")]
         monthly: bool,
+
+        /// Print alltime statistics about your command usage
+        #[arg(short, long, group = "time_interval")]
+        all: bool,
     },
 
     /// Sync the log file with the database
