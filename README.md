@@ -8,7 +8,8 @@ A complete local command tracker, no Cloud involved. Feel free to try it, but ke
 ## Installation
 - [x] Nix
     - [x] Systemd
-- [ ] Cargo
+- [x] Cargo
+- [ ] Systemd without Nix
 - [ ] From Source
 
 ### Shell prehook
@@ -16,6 +17,12 @@ Add the following to your .zshrc
 ~~~sh
 eval "$(termstat init --shell-type zsh)"
 ~~~
+
+### Cargo
+~~~sh
+cargo install termstat
+~
+
 ### Nix
 Install nix and configure terstat via Homemanager
 
@@ -97,10 +104,10 @@ termstat stats --monthly/-m
 - [x] List available Commands
 - [x] Systemd service for syncing automatically
 - [x] Nix Packaging / Module
+- [x] Publish to Crates.io
 - [ ] Support multiple Shelltypes
 - [ ] Display statistics in a fancy way with a TUI-Lib
 - [ ] Write Installation Manual
-- [ ] Publish to Crates.io
 - [ ] Far future: Support for multiple databases / Syncing across devices
 
 ## Queries
