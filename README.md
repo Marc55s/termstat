@@ -21,7 +21,7 @@ eval "$(termstat init --shell-type zsh)"
 ### Cargo
 ~~~sh
 cargo install termstat
-~
+~~~
 
 ### Nix
 Install nix and configure terstat via Homemanager
