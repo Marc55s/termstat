@@ -1,0 +1,104 @@
+# This workflow builds and releases your Rust project 'termstat'
+#
+# HOW IT WORKS:
+# 1. TEST BUILDS:
+#    On pushes to the 'github-release-action' branch, this workflow will ONLY
+#    run the 'build-and-release' job. This lets you check for compilation
+#    errors without creating a fake release.
+#
+# 2. REAL RELEASES:
+#    On pushes of tags starting with 'v*' (e.g., v1.0.0), this workflow
+#    will run BOTH jobs, creating a new GitHub Release with your binary.
+#
+name: Rust Release (termstat)
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags for actual releases
+    branches:
+      - 'github-release-action' # Trigger on pushes to this branch for testing
+
+# Set the binary name
+env:
+  BINARY_NAME: termstat
+
+jobs:
+  # Job to build the binary for Linux x86_64
+  build-and-release:
+    name: Build & Release (Linux x86_64)
+    runs-on: ubuntu-latest # Hardcode for Linux
+    env:
+      # Limit parallel build jobs to prevent out-of-memory errors
+      CARGO_BUILD_JOBS: 2
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu # Hardcode target
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build binary
+        run: cargo build --release --target x86_64-unknown-linux-gnu # Hardcode target
+
+      - name: Prepare asset names and paths
+        # This step creates environment variables for the asset name and binary path
+        shell: bash
+        run: |
+          echo "ASSET_NAME=${{ env.BINARY_NAME }}-linux-x86_64.tar.gz" >> $GITHUB_ENV
+          echo "BINARY_PATH=target/x86_64-unknown-linux-gnu/release/${{ env.BINARY_NAME }}" >> $GITHUB_ENV
+
+      - name: Package asset (Linux)
+        # Use tar to create a .tar.gz archive
+        # -C changes directory to the binary's parent folder to avoid including the full path
+        run: tar -czvf ${{ env.ASSET_NAME }} -C $(dirname ${{ env.BINARY_PATH }}) $(basename ${{ env.BINARY_PATH }})
+        
+      - name: Upload asset for release
+        # This uploads the packaged asset (tar.gz) so the next job can use it
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64-asset # Hardcoded artifact name
+          path: ${{ env.ASSET_NAME }}
+          retention-days: 1 # We only need it for the next job
+
+  # Job to create the GitHub Release and upload all assets
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-and-release # Wait for the build to finish
+    
+    # !! CRITICAL !!
+    # This 'if' condition ensures this job ONLY runs for tags,
+    # not on pushes to your testing branch.
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    permissions:
+      contents: write # Required to create a release
+    
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/ # Download all artifacts into an 'artifacts' directory
+          
+      - name: Create GitHub Release
+        # This action uses the GITHUB_TOKEN to create a release.
+        # It automatically finds the tag that triggered the workflow.
+        uses: softprops/action-gh-release@v2
+        with:
+          # Use a glob pattern to find all asset files downloaded in the previous step
+          files: artifacts/*/*
+          
+          # Automatically generate release notes from commits since the last tag
+          generate_release_notes: true
+          
+          # Set the release name to be the same as the tag
+          name: ${{ github.ref_name }}
+
